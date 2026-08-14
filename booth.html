@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Our Moments — Wedding Photobooth</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="photobooth">
+
+        <!-- Header -->
+        <header class="header">
+            <a class="back-link" href="index.html" aria-label="Kembali ke halaman selamat datang">← Beranda</a>
+
+            <div class="monogram">R & C</div>
+
+            <div class="header-text">
+                <span>OUR SPECIAL DAY</span>
+                <h1>Capture the Moment</h1>
+            </div>
+
+             <a href="#gallery" class="gallery-link">
+                ♡ Our Moments
+            </a>
+        </header>
+
+
+        <!-- Camera -->
+<section class="camera-section">
+
+    <div class="camera-frame">
+
+        <video id="camera" autoplay playsinline></video>
+
+        <canvas id="canvas"></canvas>
+
+        <!-- GOLD FRAME -->
+        <div class="wedding-frame">
+
+            <div class="ornament top-left-ornament">✦</div>
+            <div class="ornament top-right-ornament">✦</div>
+            <div class="ornament bottom-left-ornament">✦</div>
+            <div class="ornament bottom-right-ornament">✦</div>
+
+        </div>
+
+        <!-- COUNTDOWN -->
+        <div class="countdown-overlay" id="countdownOverlay">
+
+            <div class="countdown-circle">
+                <span id="countdownNumber">3</span>
+            </div>
+
+        </div>
+
+        <!-- CAMERA STATUS -->
+        <div class="camera-status">
+            ● LIVE
+        </div>
+
+    </div>
+
+
+    <!-- CAMERA CONTROLS -->
+    <section class="controls">
+
+        <!-- Switch camera -->
+        <button
+            class="switch-camera"
+            id="switchCamera"
+            aria-label="Switch camera">
+            ↻
+        </button>
+
+        <!-- Capture -->
+        <button
+            class="capture-button"
+            id="captureButton"
+            aria-label="Take photo">
+            <span></span>
+        </button>
+
+    </section>
+
+</section>
+
+
+<!-- FILTER -->
+<section class="filter-section">
+
+    <p class="section-label">
+        CHOOSE YOUR FILTER
+    </p>
+
+    <div class="filters">
+
+    <button class="filter active" data-filter="none">
+        <span class="filter-preview original"></span>
+        <span>Original</span>
+    </button>
+
+    <button class="filter" data-filter="dream">
+        <span class="filter-preview dream"></span>
+        <span>Dream Glow</span>
+    </button>
+
+    <button class="filter" data-filter="weddingGold">
+        <span class="filter-preview weddingGold"></span>
+        <span>Wedding Gold</span>
+    </button>
+
+    <button class="filter" data-filter="overexposure">
+        <span class="filter-preview overexposure"></span>
+        <span>Over Exposure</span>
+    </button>
+
+    <button class="filter" data-filter="diamond">
+        <span class="filter-preview diamond"></span>
+        <span>Diamond Soft</span>
+    </button>
+
+    <button class="filter" data-filter="frost">
+        <span class="filter-preview frost"></span>
+        <span>Frost Soft Lens</span>
+    </button>
+
+    <button class="filter" data-filter="leak1">
+        <span class="filter-preview leak1"></span>
+        <span>Leak I</span>
+    </button>
+
+</div>
+
+</section>
+
+
+<p class="instruction">
+    Tap the button to capture your moment ♡
+</p>
+
+
+
+        <!-- Preview -->
+        <section class="preview-section" id="previewSection">
+
+            <p class="section-label">YOUR MOMENT</p>
+
+            <div class="preview-container">
+                <img id="photoPreview" alt="Captured photo">
+            </div>
+
+            <div class="preview-buttons">
+                <button id="retakeButton" class="secondary-button">
+                    Retake
+                </button>
+
+                <button id="saveButton" class="primary-button">
+                    Save Photo
+                </button>
+            </div>
+
+        </section>
+
+        <!-- =========================
+            OUR MOMENTS GALLERY
+        ========================= -->
+
+        <section class="gallery-section" id="gallery">
+
+            <div class="gallery-heading">
+
+                <span class="gallery-eyebrow">
+                    OUR MEMORIES
+                </span>
+
+                <h2>Our Moments</h2>
+
+                <p>
+                    Every little moment worth remembering.
+                </p>
+
+            </div>
+
+
+            <!-- Gallery -->
+
+            <div class="gallery-grid" id="galleryGrid">
+
+                <!-- Foto akan muncul otomatis di sini -->
+
+            </div>
+
+
+            <!-- Empty State -->
+
+            <div class="gallery-empty" id="galleryEmpty">
+
+                <div class="empty-icon">
+                    ♡
+                </div>
+
+                <h3>No moments yet</h3>
+
+                <p>
+                    Capture your first beautiful moment together.
+                </p>
+
+                <button
+                    class="gallery-capture-button"
+                    onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+
+                    Take a Photo
+
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <span>WITH LOVE</span>
+            <span>♡</span>
+            <span>OUR WEDDING</span>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
