@@ -40,28 +40,85 @@
 
     <div class="camera-frame">
 
-        <video id="camera" autoplay playsinline></video>
+        <!-- CAMERA VIDEO -->
+        <video
+            id="camera"
+            autoplay
+            playsinline>
+        </video>
 
+        <!-- EXPOSURE CONTROL -->
+
+        <div
+            class="exposure-control"
+            id="exposureControl">
+
+            <div class="exposure-icon">
+                ☀
+            </div>
+
+            <span
+                class="exposure-value"
+                id="exposureValue">
+                0
+            </span>
+
+        </div>
+
+
+        <div
+            class="exposure-hint"
+            id="exposureHint">
+
+            ↑ Brighter &nbsp; • &nbsp; ↓ Darker
+
+        </div>
+
+        <!-- TAP TO FOCUS -->
+        <div id="focusBox" class="focus-box"></div>
+
+
+        <!-- CANVAS -->
         <canvas id="canvas"></canvas>
+
 
         <!-- GOLD FRAME -->
         <div class="wedding-frame">
 
-            <div class="ornament top-left-ornament">✦</div>
-            <div class="ornament top-right-ornament">✦</div>
-            <div class="ornament bottom-left-ornament">✦</div>
-            <div class="ornament bottom-right-ornament">✦</div>
+            <div class="ornament top-left-ornament">
+                ✦
+            </div>
 
-        </div>
+            <div class="ornament top-right-ornament">
+                ✦
+            </div>
 
-        <!-- COUNTDOWN -->
-        <div class="countdown-overlay" id="countdownOverlay">
+            <div class="ornament bottom-left-ornament">
+                ✦
+            </div>
 
-            <div class="countdown-circle">
-                <span id="countdownNumber">3</span>
+            <div class="ornament bottom-right-ornament">
+                ✦
             </div>
 
         </div>
+
+
+        <!-- COUNTDOWN -->
+        <div
+            class="countdown-overlay"
+            id="countdownOverlay">
+
+            <div class="countdown-circle">
+
+                <span id="countdownNumber">
+                    3
+                </span>
+
+            </div>
+
+        </div>
+
 
         <!-- CAMERA STATUS -->
         <div class="camera-status">
@@ -79,15 +136,20 @@
             class="switch-camera"
             id="switchCamera"
             aria-label="Switch camera">
+
             ↻
+
         </button>
+
 
         <!-- Capture -->
         <button
             class="capture-button"
             id="captureButton"
             aria-label="Take photo">
+
             <span></span>
+
         </button>
 
     </section>
@@ -107,6 +169,11 @@
     <button class="filter active" data-filter="none">
         <span class="filter-preview original"></span>
         <span>Original</span>
+    </button>
+
+    <button class="filter active" data-filter="fuji">
+        <span class="filter-preview fuji"></span>
+        <span>Fuji Soft</span>
     </button>
 
     <button class="filter" data-filter="dream">
