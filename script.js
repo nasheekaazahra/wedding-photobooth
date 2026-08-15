@@ -41,6 +41,19 @@ let currentFilter = "none";
 
 let isCountingDown = false;
 
+function updateCameraMirror() {
+
+    if (currentFacingMode === "user") {
+
+        video.style.transform = "scaleX(-1)";
+
+    } else {
+
+        video.style.transform = "scaleX(1)";
+
+    }
+
+}
 
 /* =========================
    FILTER CONFIG
@@ -154,6 +167,7 @@ async function startCamera() {
 
         video.srcObject = currentStream;
 
+        updateCameraMirror();
 
         applyLiveFilter();
 
