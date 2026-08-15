@@ -41,6 +41,467 @@ let currentFilter = "none";
 
 let isCountingDown = false;
 
+const focusBox =
+    document.getElementById("focusBox");
+
+let focusTimeout = null;
+
+/* =========================
+   EXPOSURE
+========================= */
+
+const cameraFrame =
+    document.querySelector(".camera-frame");
+
+const exposureControl =
+    document.getElementById("exposureControl");
+
+const exposureValue =
+    document.getElementById("exposureValue");
+
+const exposureHint =
+    document.getElementById("exposureHint");
+
+let exposure = 0;
+
+let isAdjustingExposure = false;
+
+let exposureStartY = 0;
+
+let exposureStartValue = 0;
+
+
+/* =========================
+   TAP TO FOCUS
+========================= */
+
+video.addEventListener("click", async (event) => {
+
+    if (isCountingDown) return;
+
+    const rect =
+        video.getBoundingClientRect();
+
+
+    /* Posisi tap */
+
+    const x =
+        event.clientX - rect.left;
+
+    const y =
+        event.clientY - rect.top;
+
+
+    /* Tampilkan focus box */
+
+    focusBox.style.left =
+        `${x}px`;
+
+    focusBox.style.top =
+        `${y}px`;
+
+    focusBox.classList.remove("focused");
+
+    void focusBox.offsetWidth;
+
+    focusBox.classList.add("show");
+
+
+    /* Coba fokus kamera */
+
+    await setCameraFocus(
+        x,
+        y
+    );
+
+    /* =========================
+   TAP + SWIPE EXPOSURE
+========================= */
+
+cameraFrame.addEventListener(
+    "pointerdown",
+    async (event) => {
+
+        if (isCountingDown) return;
+
+        /*
+         * Jangan aktif jika yang disentuh
+         * adalah tombol / filter
+         */
+
+        if (
+            event.target.closest("button") ||
+            event.target.closest(".filters")
+        ) {
+            return;
+        }
+
+
+        const rect =
+            video.getBoundingClientRect();
+
+
+        /*
+         * Posisi tap
+         */
+
+        const x =
+            event.clientX - rect.left;
+
+        const y =
+            event.clientY - rect.top;
+
+
+        /*
+         * Simpan posisi awal swipe
+         */
+
+        exposureStartY =
+            event.clientY;
+
+        exposureStartValue =
+            exposure;
+
+
+        isAdjustingExposure = true;
+
+
+        /*
+         * Pindahkan indikator exposure
+         * ke posisi tap
+         */
+
+        if (exposureControl) {
+
+            exposureControl.style.left =
+                `${x}px`;
+
+            exposureControl.style.top =
+                `${y}px`;
+
+            exposureControl.classList.add(
+                "show"
+            );
+
+        }
+
+
+        /*
+         * Tampilkan hint
+         */
+
+        if (exposureHint) {
+
+            exposureHint.classList.add(
+                "show"
+            );
+
+        }
+
+
+        /*
+         * Tetap jalankan TAP TO FOCUS
+         */
+
+        await setCameraFocus(
+            x,
+            y
+        );
+
+    }
+);
+
+cameraFrame.addEventListener(
+    "pointermove",
+    (event) => {
+
+        if (!isAdjustingExposure) return;
+
+
+        /*
+         * Hitung jarak swipe
+         *
+         * Atas  = positif
+         * Bawah = negatif
+         */
+
+        const difference =
+            exposureStartY -
+            event.clientY;
+
+
+        /*
+         * Setiap 50px
+         * = perubahan 0.5
+         */
+
+        let newExposure =
+            exposureStartValue +
+            (difference / 100);
+
+
+        /*
+         * Batasi:
+         *
+         * -3 = paling gelap
+         *  0 = normal
+         * +3 = paling terang
+         */
+
+        newExposure =
+            Math.max(
+                -3,
+                Math.min(
+                    3,
+                    newExposure
+                )
+            );
+
+
+        exposure =
+            Math.round(
+                newExposure * 10
+            ) / 10;
+
+
+        updateExposure();
+
+
+        /*
+         * Jangan biarkan browser
+         * melakukan scroll saat swipe
+         */
+
+        event.preventDefault();
+
+    }
+);
+
+function updateExposure() {
+
+    /*
+     * Update angka
+     */
+
+    if (exposure > 0) {
+
+        exposureValue.textContent =
+            `+${exposure.toFixed(1)}`;
+
+    } else {
+
+        exposureValue.textContent =
+            exposure.toFixed(1);
+
+    }
+
+
+    /*
+     * Update kamera
+     */
+
+    applyLiveFilter();
+
+}
+
+cameraFrame.addEventListener(
+    "pointerup",
+    () => {
+
+        isAdjustingExposure = false;
+
+
+        setTimeout(() => {
+
+            if (exposureHint) {
+
+                exposureHint.classList.remove(
+                    "show"
+                );
+
+            }
+
+        }, 1200);
+
+    }
+);
+
+
+cameraFrame.addEventListener(
+    "pointercancel",
+    () => {
+
+        isAdjustingExposure = false;
+
+    }
+);
+
+    /* Animasi focus */
+
+    focusBox.classList.add(
+        "focused"
+    );
+
+
+    /* Hilangkan setelah 1.8 detik */
+
+    clearTimeout(
+        focusTimeout
+    );
+
+    focusTimeout =
+        setTimeout(() => {
+
+            focusBox.classList.remove(
+                "show"
+            );
+
+        }, 1800);
+
+});
+
+
+/* =========================
+   CAMERA FOCUS
+========================= */
+
+async function setCameraFocus(x, y) {
+
+    if (!currentStream) return;
+
+
+    const track =
+        currentStream.getVideoTracks()[0];
+
+    if (!track) return;
+
+
+    const capabilities =
+        track.getCapabilities();
+
+
+    /*
+       Cek apakah kamera
+       mendukung focus control
+    */
+
+    if (
+        !capabilities.focusMode &&
+        !capabilities.pointsOfInterest
+    ) {
+
+        console.log(
+            "Camera tidak mendukung manual focus."
+        );
+
+        return;
+
+    }
+
+
+    const rect =
+        video.getBoundingClientRect();
+
+
+    /*
+       Convert posisi tap
+       menjadi 0 - 1
+    */
+
+    const pointX =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                x / rect.width
+            )
+        );
+
+    const pointY =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                y / rect.height
+            )
+        );
+
+
+    try {
+
+        const constraints = {
+            advanced: []
+        };
+
+
+        /*
+           Continuous autofocus
+        */
+
+        if (
+            capabilities.focusMode &&
+            capabilities.focusMode.includes(
+                "continuous"
+            )
+        ) {
+
+            constraints.advanced.push({
+
+                focusMode:
+                    "continuous"
+
+            });
+
+        }
+
+
+        /*
+           Tap focus point
+        */
+
+        if (
+            capabilities.pointsOfInterest
+        ) {
+
+            constraints.advanced.push({
+
+                pointsOfInterest: [
+
+                    {
+                        x: pointX,
+                        y: pointY
+                    }
+
+                ]
+
+            });
+
+        }
+
+
+        await track.applyConstraints(
+            constraints
+        );
+
+
+        console.log(
+            "Focus applied:",
+            pointX,
+            pointY
+        );
+
+
+    } catch (error) {
+
+        console.warn(
+            "Focus tidak bisa diterapkan:",
+            error
+        );
+
+    }
+
+}
+
 function updateCameraMirror() {
 
     if (currentFacingMode === "user") {
@@ -69,6 +530,13 @@ const filters = {
     none:
         "none",
 
+    /* =========================
+       FUJI SOFT
+       Clean + creamy + subtle makeup
+    ========================= */
+
+    fuji:
+        "brightness(1.04) contrast(0.96) saturate(1.08) sepia(0.025) blur(0.12px)",
 
     /* =========================
        DREAM GLOW
@@ -191,8 +659,16 @@ async function startCamera() {
 
 function applyLiveFilter() {
 
-    video.style.filter =
+    const exposureBrightness =
+        1 + (exposure * 0.12);
+
+    const filter =
         filters[currentFilter];
+
+    video.style.filter = `
+        ${filter}
+        brightness(${exposureBrightness})
+    `;
 
 }
 
@@ -355,19 +831,26 @@ function takePhoto() {
         video.videoHeight;
 
 
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width =
+        width;
+
+    canvas.height =
+        height;
 
 
     const context =
         canvas.getContext("2d");
 
 
-    /* =========================
-       MIRROR FRONT CAMERA
-    ========================= */
+    /*
+     * =========================
+     * MIRROR FRONT CAMERA
+     * =========================
+     */
 
-    if (currentFacingMode === "user") {
+    if (
+        currentFacingMode === "user"
+    ) {
 
         context.translate(
             width,
@@ -378,52 +861,74 @@ function takePhoto() {
             -1,
             1
         );
+
     }
 
 
-    /* =========================
-       DRAW IMAGE
-    ========================= */
+    /*
+     * =========================
+     * EXPOSURE
+     * =========================
+     */
 
-    if (currentFilter === "weddingGold") {
+    const exposureBrightness =
+        1 + (exposure * 0.12);
+
+
+    /*
+     * =========================
+     * FILTER
+     * =========================
+     */
+
+    if (
+        currentFilter ===
+        "weddingGold"
+    ) {
 
         /*
-         * Wedding Gold menggunakan
-         * color grading khusus
+         * Wedding Gold
+         * grading dilakukan
+         * setelah foto digambar
          */
 
-        context.filter = "none";
-
-        context.drawImage(
-            video,
-            0,
-            0,
-            width,
-            height
-        );
+        context.filter =
+            `brightness(${exposureBrightness})`;
 
     } else {
 
         /*
-         * Filter biasa
+         * Filter + Exposure
          */
 
-        context.filter =
-            filters[currentFilter];
+        context.filter = `
+            ${filters[currentFilter]}
+            brightness(${exposureBrightness})
+        `;
 
-        context.drawImage(
-            video,
-            0,
-            0,
-            width,
-            height
-        );
     }
 
 
-    /* =========================
-       RESET TRANSFORM
-    ========================= */
+    /*
+     * =========================
+     * DRAW PHOTO
+     * =========================
+     */
+
+    context.drawImage(
+        video,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+     * =========================
+     * RESET
+     * =========================
+     */
 
     context.setTransform(
         1,
@@ -434,14 +939,20 @@ function takePhoto() {
         0
     );
 
-    context.filter = "none";
+    context.filter =
+        "none";
 
 
-    /* =========================
-       WEDDING GOLD GRADING
-    ========================= */
+    /*
+     * =========================
+     * WEDDING GOLD GRADING
+     * =========================
+     */
 
-    if (currentFilter === "weddingGold") {
+    if (
+        currentFilter ===
+        "weddingGold"
+    ) {
 
         applyWeddingGoldGrade(
             context,
@@ -450,10 +961,25 @@ function takePhoto() {
         );
     }
 
+    if (
+    currentFilter === "fuji"
+) {
 
-    /* =========================
-       WEDDING GOLD FRAME
-    ========================= */
+    applyFujiBeautyGrade(
+        context,
+        width,
+        height
+    );
+
+}
+    
+
+
+    /*
+     * =========================
+     * GOLD FRAME
+     * =========================
+     */
 
     drawWeddingFrame(
         context,
@@ -462,9 +988,11 @@ function takePhoto() {
     );
 
 
-    /* =========================
-       EXPORT
-    ========================= */
+    /*
+     * =========================
+     * EXPORT
+     * =========================
+     */
 
     const imageData =
         canvas.toDataURL(
@@ -476,6 +1004,12 @@ function takePhoto() {
     photoPreview.src =
         imageData;
 
+
+    /*
+     * =========================
+     * SHOW PREVIEW
+     * =========================
+     */
 
     previewSection.style.display =
         "block";
@@ -863,6 +1397,171 @@ function applyWeddingGoldGrade(ctx, width, height) {
 }
 
 /* =========================
+   FUJI BEAUTY GRADE
+========================= */
+
+function applyFujiBeautyGrade(ctx, width, height) {
+
+    const imageData = ctx.getImageData(
+        0,
+        0,
+        width,
+        height
+    );
+
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
+
+        const luminance =
+            (0.299 * r) +
+            (0.587 * g) +
+            (0.114 * b);
+
+
+        /* =========================
+           SKIN DETECTION
+        ========================= */
+
+        const isSkin =
+            r > 80 &&
+            g > 40 &&
+            b > 25 &&
+            r > g * 1.08 &&
+            g > b * 1.05 &&
+            r - b > 25;
+
+
+        if (isSkin) {
+
+            /* Soft skin */
+
+            const average =
+                (r + g + b) / 3;
+
+            r = r * 0.97 + average * 0.03;
+            g = g * 0.98 + average * 0.02;
+            b = b * 0.99 + average * 0.01;
+
+
+            /* Creamy skin tone */
+
+            r += 2.5;
+            g += 1;
+            b -= 1;
+
+
+            /* =========================
+               MAKEUP ENHANCEMENT
+            ========================= */
+
+            /*
+             * Blush / lipstick
+             */
+
+            if (
+                r > g * 1.15 &&
+                r > b * 1.18
+            ) {
+
+                r *= 1.04;
+                g *= 0.995;
+                b *= 0.99;
+
+            }
+
+
+            /* =========================
+               SKIN HIGHLIGHT
+            ========================= */
+
+            if (luminance > 145) {
+
+                const highlight =
+                    (luminance - 145) / 110;
+
+                r += highlight * 2;
+                g += highlight * 1.5;
+                b += highlight;
+
+            }
+
+        }
+
+
+        /* =========================
+           FUJI COLOR
+        ========================= */
+
+        /*
+         * Kurangi green cast
+         */
+
+        if (
+            g > r * 1.08 &&
+            g > b * 1.12
+        ) {
+
+            g *= 0.975;
+
+        }
+
+
+        /* =========================
+           SOFT CONTRAST
+        ========================= */
+
+        r =
+            ((r - 128) * 0.97) + 128;
+
+        g =
+            ((g - 128) * 0.97) + 128;
+
+        b =
+            ((b - 128) * 0.97) + 128;
+
+
+        /* =========================
+           WARM HIGHLIGHT
+        ========================= */
+
+        if (luminance > 175) {
+
+            r += 1.5;
+            g += 1;
+            b -= 0.5;
+
+        }
+
+
+        /* =========================
+           CLAMP
+        ========================= */
+
+        data[i] =
+            Math.max(0, Math.min(255, r));
+
+        data[i + 1] =
+            Math.max(0, Math.min(255, g));
+
+        data[i + 2] =
+            Math.max(0, Math.min(255, b));
+
+    }
+
+    ctx.putImageData(
+        imageData,
+        0,
+        0
+    );
+
+}
+
+/* =========================
    RETAKE
 ========================= */
 
@@ -1161,6 +1860,7 @@ function openPhotoViewer(imageData) {
     );
 
 }
+
 
 /* =========================
    SAVE PHOTO
